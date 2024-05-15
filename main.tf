@@ -64,8 +64,23 @@ resource "random_string" "lb_id" {
   special = false
 }
 
+module "ec2_instance" {
+  source  = "terraform-aws-modules/ec2-instance/aws"
+  version = "5.6.1"
+
+  depends_on = [module.vpc]
+
+  name                    = var.db_instance_name
+  instance_type           = var.instance_type
+  subnet_id               = module.vpc.public_subnets[0]
+  vpc_security_group_ids  = [module.db_security_group.security_group_id]
+
+  tags = var.resource_tags
+}
+
 module "elb_http" {
   source  = "terraform-aws-modules/elb/aws"
+  version = "4.0.1"
 
   # Ensure load balancer name is unique
   name = "lb-${random_string.lb_id.result}-${var.resource_tags["project"]}-${var.resource_tags["environment"]}"
@@ -75,8 +90,9 @@ module "elb_http" {
   security_groups = [module.lb_security_group.security_group_id]
   subnets         = module.vpc.public_subnets
 
-  number_of_instances = length(module.ec2_instance.id)
-  instances           = module.ec2_instance.id
+  #number_of_instances = length(module.ec2_instance.id)
+  number_of_instances = var.instance_count
+  instances           = [module.ec2_instance.id]
 
   listener = [{
     instance_port     = "80"
@@ -96,25 +112,12 @@ module "elb_http" {
   tags = var.resource_tags
 }
 
-module "ec2_instance" {
-  source  = "terraform-aws-modules/ec2-instance/aws"
-  version = "5.6.1"
-
-  depends_on = [module.vpc]
-
-  name                    = var.db_instance_name
-  instance_type           = var.instance_type
-  subnet_id               = module.vpc.public_subnets[*]
-  vpc_security_group_ids  = [module.db_security_group.security_group_id]
-
-  tags = var.resource_tags
-}
 
 module "s3-bucket" {
   source  = "terraform-aws-modules/s3-bucket/aws"
   version = "4.1.2"
 
-  bucket = "s3-bucket-${random_string.lb_id.result}-${var.resource_tags["project"]}-${var.resource_tags["environment"]}"
+  bucket = "s3-bucket-${var.resource_tags["project"]}-${var.resource_tags["environment"]}"
   acl    = "private"
 
   control_object_ownership = true
