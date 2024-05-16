@@ -75,7 +75,7 @@ variable "public_subnet_count" {
 variable "private_subnet_count" {
     description = "Number of private subnets"
     type        = number
-    default     = 1 
+    default     = 3 
 }
 
 variable "public_subnets_cidr_blocks" {
