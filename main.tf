@@ -30,11 +30,22 @@ module "db_security_group" {
   description = "Security group for Database with TCP ports open within VPC"
   vpc_id      = module.vpc.vpc_id
 
-  ingress_cidr_blocks = module.vpc.public_subnets_cidr_blocks
+  #ingress_cidr_blocks = module.vpc.public_subnets_cidr_blocks
+  ingress_cidr_blocks = [var.vpc_cidr_block]
+  
+  ingress_with_cidr_blocks  = [
+    {
+      from_port = 22
+      to_port   = 22
+      protocol  = "tcp"
+      cidr_blocks = "0.0.0.0/0"
+    }
+  ]
 
   tags = var.resource_tags
 }
 
+/*
 module "app_security_group" {
   source  = "terraform-aws-modules/security-group/aws//modules/web"
 
@@ -46,6 +57,7 @@ module "app_security_group" {
 
   tags = var.resource_tags
 }
+*/
 
 module "lb_security_group" {
   source  = "terraform-aws-modules/security-group/aws//modules/web"
@@ -59,25 +71,31 @@ module "lb_security_group" {
   tags = var.resource_tags
 }
 
-resource "random_string" "lb_id" {
-  length  = 3
-  special = false
+module "key_pair" {
+  source  = "terraform-aws-modules/key-pair/aws"
+
+  key_name            = "mongodb"
+  create_private_key  = true
 }
 
 module "ec2_instance" {
   source  = "terraform-aws-modules/ec2-instance/aws"
   version = "5.6.1"
 
-  depends_on = [module.vpc]
+  depends_on = [module.vpc, module.key_pair]
 
-  name                    = var.db_instance_name
-  instance_type           = var.instance_type
-  subnet_id               = module.vpc.public_subnets[0]
-  vpc_security_group_ids  = [module.db_security_group.security_group_id]
+  name                        = var.db_instance_name
+  instance_type               = var.instance_type
+  ami                         = var.mongodb_ami_id
+  subnet_id                   = module.vpc.public_subnets[0]
+  vpc_security_group_ids      = [module.db_security_group.security_group_id]
+  associate_public_ip_address = true
+  key_name                    = "mongodb"
 
   tags = var.resource_tags
 }
 
+/*
 module "elb_http" {
   source  = "terraform-aws-modules/elb/aws"
   version = "4.0.1"
@@ -127,3 +145,4 @@ module "s3-bucket" {
     enabled = true
   }
 }
+*/

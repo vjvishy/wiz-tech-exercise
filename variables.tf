@@ -33,13 +33,19 @@ variable "instance_count" {
 variable "instance_type" {
     description = "AWS EC2 instance type to provision"
     type        = string
-    default     = "t2.micro"
+    default     = "t2.medium"
 }
 
 variable "db_instance_name" {
     description = "Name of the DB EC2 instance"
     type        = string
     default     = "db"
+}
+
+variable "mongodb_ami_id" {
+    description = "AMI Id of the MongoDB server"
+    type        = string
+    default     = "ami-09fc2e89035bdc541"
 }
 
 variable "vpc_cidr_block" {

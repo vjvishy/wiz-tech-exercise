@@ -8,7 +8,15 @@ output "db_instance_public_ip" {
   value       = module.ec2_instance.public_ip
 }
 
+output "db_instance_private_key" {
+  description = "Private AWS EC2 Key Pair information"
+  value       = module.key_pair.private_key_openssh
+  sensitive   = true
+}
+
+/*
 output "public_dns_name" {
   description = "Public DNS names of the load balancer for this project"
   value       = module.elb_http.elb_dns_name
 }
+*/
