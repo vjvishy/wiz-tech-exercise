@@ -8,11 +8,22 @@ output "db_instance_public_ip" {
   value       = module.ec2_instance.public_ip
 }
 
+output "ec2_instance_dns_name" {
+  description = "EC2 instance DNS Name"
+  value       = module.ec2_instance.public_dns
+}
+
 output "db_instance_private_key" {
   description = "Private AWS EC2 Key Pair information"
   value       = module.key_pair.private_key_openssh
   sensitive   = true
 }
+
+output "s3_bucket_name" {
+  description = "AWS S3 Name"
+  value       = module.s3-bucket.s3_bucket_id
+}
+
 
 /*
 output "public_dns_name" {

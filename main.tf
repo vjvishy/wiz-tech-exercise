@@ -78,11 +78,26 @@ module "key_pair" {
   create_private_key  = true
 }
 
+module "s3-bucket" {
+  source  = "terraform-aws-modules/s3-bucket/aws"
+  version = "4.1.2"
+
+  bucket = "s3-bucket-${var.resource_tags["project"]}-${var.resource_tags["environment"]}"
+  acl    = "private"
+
+  control_object_ownership = true
+  object_ownership         = "ObjectWriter"
+
+  versioning = {
+    enabled = true
+  }
+}
+
 module "ec2_instance" {
   source  = "terraform-aws-modules/ec2-instance/aws"
   version = "5.6.1"
 
-  depends_on = [module.vpc, module.key_pair]
+  depends_on = [module.vpc, module.key_pair, module.s3-bucket]
 
   name                        = var.db_instance_name
   instance_type               = var.instance_type
@@ -128,21 +143,5 @@ module "elb_http" {
   }
 
   tags = var.resource_tags
-}
-
-
-module "s3-bucket" {
-  source  = "terraform-aws-modules/s3-bucket/aws"
-  version = "4.1.2"
-
-  bucket = "s3-bucket-${var.resource_tags["project"]}-${var.resource_tags["environment"]}"
-  acl    = "private"
-
-  control_object_ownership = true
-  object_ownership         = "ObjectWriter"
-
-  versioning = {
-    enabled = true
-  }
 }
 */
